@@ -129,7 +129,7 @@ export default function AppPage() {
           <h1 className="text-2xl font-bold">
             {t("app.welcome")}，{session.user.name?.split(" ")[0] || "User"}! {getTimeEmoji()}
           </h1>
-          <p className="text-muted-foreground max-w-2xl">{t("welcome.subheadline")}</p>
+        {/* <p className="text-muted-foreground max-w-2xl">{t("welcome.subheadline")}</p> */}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 my-12 md:mb-10">
