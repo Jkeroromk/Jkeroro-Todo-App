@@ -221,39 +221,41 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
             {t("testimonials.title")}
           </h2>
-          <div className="relative max-w-3xl mx-auto">
-            <motion.div
-              key={currentTestimonial}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-xl p-8 border border-border"
-            >
-              <Quote className="h-8 w-8 text-primary mb-4" />
-              <p className="text-lg mb-6">{testimonials[currentTestimonial].quote}</p>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold">{testimonials[currentTestimonial].author}</p>
-                  <p className="text-sm text-muted-foreground">{testimonials[currentTestimonial].role}</p>
+          <div className="border border-border rounded-xl overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+            <div className="p-8 md:p-12">
+              <motion.div
+                key={currentTestimonial}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex flex-col"
+              >
+                <Quote className="h-8 w-8 text-primary mb-4" />
+                <p className="text-lg mb-6">{testimonials[currentTestimonial].quote}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <div>
+                    <p className="font-bold">{testimonials[currentTestimonial].author}</p>
+                    <p className="text-sm text-muted-foreground">{testimonials[currentTestimonial].role}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </motion.section>
 

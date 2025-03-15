@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, updateDoc, deleteDoc, doc, onSnapshot, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Task } from '@/components/todo-app';
 import { useSession } from 'next-auth/react';
@@ -37,34 +37,64 @@ export function useTasks() {
   const addTask = async (task: Omit<Task, 'id' | 'createdAt'>) => {
     if (!session?.user?.id) return;
 
-    const newTask = {
-      ...task,
-      createdAt: new Date().toISOString(),
-      userId: session.user.id
-    };
+    try {
+      const newTask = {
+        ...task,
+        createdAt: new Date().toISOString(),
+        userId: session.user.id
+      };
 
-    await addDoc(collection(db, 'tasks'), newTask);
+      if (newTask.dueDate === undefined) {
+        delete newTask.dueDate;
+      }
+
+      await addDoc(collection(db, 'tasks'), newTask);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      throw error;
+    }
   };
 
   const toggleTaskCompletion = async (taskId: string) => {
-    const taskRef = doc(db, 'tasks', taskId);
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      await updateDoc(taskRef, {
-        completed: !task.completed
-      });
+    try {
+      const taskRef = doc(db, 'tasks', taskId);
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        await updateDoc(taskRef, {
+          completed: !task.completed
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling task completion:', error);
+      throw error;
     }
   };
 
   const deleteTask = async (taskId: string) => {
-    await deleteDoc(doc(db, 'tasks', taskId));
+    try {
+      await deleteDoc(doc(db, 'tasks', taskId));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
   };
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'userId'>>) => {
     if (!session?.user?.id) return;
     
-    const taskRef = doc(db, 'tasks', taskId);
-    await updateDoc(taskRef, updates);
+    try {
+      const taskRef = doc(db, 'tasks', taskId);
+      const updatedData = { ...updates };
+
+      if (updatedData.dueDate === undefined) {
+        updatedData.dueDate = deleteField();
+      }
+
+      await updateDoc(taskRef, updatedData);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
   };
 
   return {

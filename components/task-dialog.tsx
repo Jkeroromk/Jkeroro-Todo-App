@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { Task } from "./todo-app"
 import { useLanguage } from "@/contexts/language-context"
 import { cn } from "@/lib/utils"
@@ -29,6 +30,7 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
   const [dueDate, setDueDate] = useState<Date | undefined>(
     initialData?.dueDate ? new Date(initialData.dueDate) : undefined
   )
+  const [isIndefinite, setIsIndefinite] = useState(!initialData?.dueDate)
 
   // Reset form when dialog opens/closes or mode changes
   useEffect(() => {
@@ -36,10 +38,12 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
       setTitle(initialData.title)
       setCategory(initialData.category)
       setDueDate(initialData.dueDate ? new Date(initialData.dueDate) : undefined)
+      setIsIndefinite(!initialData.dueDate)
     } else if (isOpen && mode === "add") {
       setTitle("")
       setCategory(undefined)
       setDueDate(undefined)
+      setIsIndefinite(true)
     }
   }, [isOpen, initialData, mode])
 
@@ -49,17 +53,12 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
     e.preventDefault()
 
     if (!title.trim()) return
-    if (!dueDate) {
-      // 如果没有选择日期，阻止提交
-      e.preventDefault()
-      return
-    }
 
     onSubmit({
       title: title.trim(),
       completed: initialData?.completed || false,
       category,
-      dueDate: dueDate.toISOString(),
+      dueDate: isIndefinite ? undefined : dueDate?.toISOString(),
     })
 
     onClose()
@@ -84,6 +83,9 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{mode === "add" ? t("addTask.title") : t("editTask.title")}</DialogTitle>
+            <DialogDescription>
+              {mode === "add" ? t("addTask.description") : t("editTask.description")}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -116,7 +118,24 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
             </div>
 
             <div className="grid gap-2">
-              <Label>{t("addTask.dueDate")} <span className="text-destructive">*</span></Label>
+              <div className="flex items-center justify-between">
+                <Label>{t("addTask.dueDate")}</Label>
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    id="indefinite"
+                    checked={isIndefinite}
+                    onCheckedChange={(checked) => {
+                      setIsIndefinite(checked === true)
+                      if (checked) {
+                        setDueDate(undefined)
+                      }
+                    }}
+                  />
+                  <Label htmlFor="indefinite" className="text-sm font-normal">
+                    {t("addTask.noDeadline")}
+                  </Label>
+                </div>
+              </div>
               <div className="relative">
                 <Popover modal={true}>
                   <PopoverTrigger asChild>
@@ -127,6 +146,7 @@ export function TaskDialog({ isOpen, onClose, onSubmit, mode, initialData }: Tas
                         "w-full justify-start text-left font-normal hover:bg-accent hover:text-accent-foreground",
                         !dueDate && "text-muted-foreground"
                       )}
+                      disabled={isIndefinite}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                       {dueDate ? formatDate(dueDate) : t("addTask.pickDate")}

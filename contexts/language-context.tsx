@@ -39,17 +39,20 @@ const translations = {
 
     // Add task dialog
     "addTask.title": "Add New Task",
+    "addTask.description": "Fill in the task details below.",
     "addTask.taskTitle": "Task Title",
     "addTask.enterTitle": "Enter task title...",
     "addTask.category": "Category",
     "addTask.selectCategory": "Select a category",
     "addTask.dueDate": "Due Date",
     "addTask.pickDate": "Pick a date",
+    "addTask.noDeadline": "No deadline",
     "addTask.cancel": "Cancel",
     "addTask.add": "Add Task",
 
     // Edit task dialog
     "editTask.title": "Edit Task",
+    "editTask.description": "Modify the task details below.",
     "editTask.save": "Save Changes",
 
     // Categories
@@ -195,17 +198,20 @@ const translations = {
 
     // Add task dialog
     "addTask.title": "添加新任务",
+    "addTask.description": "请在下方填写任务详情。",
     "addTask.taskTitle": "任务标题",
     "addTask.enterTitle": "输入任务标题...",
     "addTask.category": "分类",
     "addTask.selectCategory": "选择分类",
     "addTask.dueDate": "截止日期",
     "addTask.pickDate": "选择日期",
+    "addTask.noDeadline": "无截止日期",
     "addTask.cancel": "取消",
     "addTask.add": "添加任务",
 
     // Edit task dialog
     "editTask.title": "编辑任务",
+    "editTask.description": "在下方修改任务详情。",
     "editTask.save": "保存更改",
 
     // Categories

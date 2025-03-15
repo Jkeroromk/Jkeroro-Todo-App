@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react"
 import { useTasks } from "@/hooks/use-tasks"
 import { TaskDialog } from "./task-dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { motion, AnimatePresence } from "framer-motion"
 
 export type Task = {
   id: string
@@ -31,6 +32,47 @@ export default function TodoApp() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [viewMode, setViewMode] = useState("calendar")
   const { tasks, loading, addTask, toggleTaskCompletion, deleteTask, updateTask } = useTasks()
+
+  // Animation variants
+  const tabVariants = {
+    active: {
+      backgroundColor: "var(--primary)",
+      color: "var(--primary-foreground)",
+      transition: { type: "spring", duration: 0.5 }
+    },
+    inactive: {
+      backgroundColor: "transparent",
+      color: "var(--foreground)",
+      transition: { type: "spring", duration: 0.5 }
+    }
+  }
+
+  const contentVariants = {
+    enter: {
+      opacity: 0,
+      y: 20,
+      scale: 0.95,
+    },
+    center: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.3,
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      scale: 0.95,
+      transition: {
+        duration: 0.2
+      }
+    }
+  }
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task)
@@ -54,6 +96,7 @@ export default function TodoApp() {
         })
       }
     } catch (error) {
+      console.error('Task operation error:', error)
       toast({
         title: t("toast.error"),
         description: t("toast.errorDescription"),
@@ -104,27 +147,41 @@ export default function TodoApp() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <header className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
+      <header className="flex flex-col gap-4">
+        <motion.div 
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("app.title")}</h1>
           <Button onClick={() => setIsDialogOpen(true)} className="gap-1">
             <PlusCircle className="w-4 h-4" />
             <span className="hidden sm:inline">{t("app.addTask")}</span>
           </Button>
-        </div>
+        </motion.div>
 
         <Tabs defaultValue="calendar" value={viewMode} onValueChange={setViewMode} className="w-full">
-          <TabsList className="grid grid-cols-3 w-full max-w-sm mx-auto bg-secondary">
-            <TabsTrigger value="calendar" className="flex items-center gap-1 data-[state=active]:bg-background">
+          <TabsList className="grid grid-cols-3 w-full bg-secondary rounded-lg p-1">
+            <TabsTrigger 
+              value="calendar" 
+              className="flex items-center gap-1 data-[state=active]:bg-foreground dark:data-[state=active]:bg-background data-[state=active]:text-background dark:data-[state=active]:text-foreground rounded-md transition-colors"
+            >
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">{t("app.calendar")}</span>
             </TabsTrigger>
-            <TabsTrigger value="grid" className="flex items-center gap-1 data-[state=active]:bg-background">
+            <TabsTrigger 
+              value="grid" 
+              className="flex items-center gap-1 data-[state=active]:bg-foreground dark:data-[state=active]:bg-background data-[state=active]:text-background dark:data-[state=active]:text-foreground rounded-md transition-colors"
+            >
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">{t("app.grid")}</span>
             </TabsTrigger>
-            <TabsTrigger value="list" className="flex items-center gap-1 data-[state=active]:bg-background">
+            <TabsTrigger 
+              value="list" 
+              className="flex items-center gap-1 data-[state=active]:bg-foreground dark:data-[state=active]:bg-background data-[state=active]:text-background dark:data-[state=active]:text-foreground rounded-md transition-colors"
+            >
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">{t("app.list")}</span>
             </TabsTrigger>
@@ -132,34 +189,42 @@ export default function TodoApp() {
         </Tabs>
       </header>
 
-      <main>
-        {viewMode === "calendar" && (
-          <TodoCalendar 
-            tasks={tasks} 
-            onToggleCompletion={handleToggleCompletion}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleEditTask}
-          />
-        )}
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={viewMode}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          variants={contentVariants}
+        >
+          {viewMode === "calendar" && (
+            <TodoCalendar 
+              tasks={tasks} 
+              onToggleCompletion={handleToggleCompletion}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditTask}
+            />
+          )}
 
-        {viewMode === "grid" && (
-          <TodoGrid 
-            tasks={tasks} 
-            onToggleCompletion={handleToggleCompletion}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleEditTask}
-          />
-        )}
+          {viewMode === "grid" && (
+            <TodoGrid 
+              tasks={tasks} 
+              onToggleCompletion={handleToggleCompletion}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditTask}
+            />
+          )}
 
-        {viewMode === "list" && (
-          <TodoList 
-            tasks={tasks} 
-            onToggleCompletion={handleToggleCompletion}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleEditTask}
-          />
-        )}
-      </main>
+          {viewMode === "list" && (
+            <TodoList 
+              tasks={tasks} 
+              onToggleCompletion={handleToggleCompletion}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditTask}
+            />
+          )}
+        </motion.main>
+      </AnimatePresence>
 
       <TaskDialog 
         isOpen={isDialogOpen}

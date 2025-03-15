@@ -132,8 +132,8 @@ export default function AppPage() {
           <p className="text-muted-foreground max-w-2xl">{t("welcome.subheadline")}</p>
         </div>
 
-        <div className="flex justify-center md:justify-center gap-8 md:gap-12 my-12 md:mb-10">
-          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow w-[140px] h-[120px]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 my-12 md:mb-10">
+          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <ListTodo className="h-5 w-5 md:h-6 md:w-6 text-primary mb-2" />
             <div className="text-lg md:text-xl font-bold text-primary">{stats.totalTasks}</div>
             <div className="text-xs md:text-sm text-muted-foreground text-center">
@@ -141,7 +141,7 @@ export default function AppPage() {
             </div>
           </div>
           
-          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow w-[140px] h-[120px]">
+          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-green-500 mb-2" />
             <div className="text-lg md:text-xl font-bold text-green-500">{stats.completedTasks}</div>
             <div className="text-xs md:text-sm text-muted-foreground text-center">
@@ -149,7 +149,7 @@ export default function AppPage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow w-[140px] h-[120px]">
+          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <Clock className="h-5 w-5 md:h-6 md:w-6 text-orange-500 mb-2" />
             <div className="text-lg md:text-xl font-bold text-orange-500">{stats.pendingTasks}</div>
             <div className="text-xs md:text-sm text-muted-foreground text-center">
@@ -157,7 +157,7 @@ export default function AppPage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow w-[140px] h-[120px]">
+          <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <PieChart className="h-5 w-5 md:h-6 md:w-6 text-blue-500 mb-2" />
             <div className="text-lg md:text-xl font-bold text-blue-500">{stats.completionRate}%</div>
             <div className="text-xs md:text-sm text-muted-foreground text-center">
