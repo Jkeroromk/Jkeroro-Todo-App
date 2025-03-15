@@ -11,6 +11,7 @@ import { Home, LogOut, Loader2, User, CheckCircle2, Clock, ListTodo, PieChart } 
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useTasks } from "@/hooks/use-tasks"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,101 +25,107 @@ import { Progress } from "@/components/ui/progress"
 
 export default function AppPage() {
   const { t } = useLanguage()
-  const { data: session, status } = useSession()
   const router = useRouter()
+  const { data: session, status } = useSession()
+  const { tasks, loading } = useTasks()
 
-  // 获取当前时间对应的表情
   const getTimeEmoji = () => {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) {
-      return t("welcome.emoji.morning")
+      return "🌅" // 早上
     } else if (hour >= 12 && hour < 18) {
-      return t("welcome.emoji.afternoon")
+      return "☀️" // 下午
+    } else if (hour >= 18 && hour < 22) {
+      return "🌙" // 晚上
     } else {
-      return t("welcome.emoji.evening")
+      return "🌛" // 深夜
     }
-  }
-
-  // 这里应该从你的状态管理或API中获取实际数据
-  const stats = {
-    totalTasks: 12,
-    completedTasks: 5,
-    pendingTasks: 7,
-    completionRate: 41.67
   }
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/login")
+      router.push("/")
     }
   }, [status, router])
 
-  if (status === "loading") {
+  if (status === "loading" || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     )
   }
 
-  if (status === "unauthenticated") {
+  if (!session?.user) {
     return null
   }
 
+  const stats = {
+    totalTasks: tasks.length,
+    completedTasks: tasks.filter((task) => task.completed).length,
+    pendingTasks: tasks.filter((task) => !task.completed).length,
+    completionRate: tasks.length > 0 ? Math.round((tasks.filter((task) => task.completed).length / tasks.length) * 100) : 0,
+  }
+
   return (
-    <main className="min-h-screen p-2 sm:p-4 md:p-6 bg-white dark:bg-black">
-      <div className="max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
-        <div className="flex justify-between items-center mb-4 md:mb-6">
-          <div className="flex items-center gap-2 md:gap-4">
+    <main className="min-h-screen bg-background">
+      <nav className="border-b">
+        <div className="container flex items-center justify-between h-16 mx-auto px-4">
+          <div className="flex items-center gap-6">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="h-8 w-auto px-2 pt-2 hover:!bg-transparent after:!content-none">
-                <Home className="h-5 w-5" />
-                <span className="hidden sm:inline ml-1">{t("welcome.home")}</span>
+              <Button variant="ghost" className="gap-2">
+                <Home className="w-5 h-5" />
+                {t("welcome.home")}
               </Button>
             </Link>
-            <h1 className="text-lg md:text-xl lg:text-2xl font-bold hidden ml-4 mt-1 sm:block">
-              {t("welcome.headline")
-                .replace("{username}", session?.user?.name || session?.user?.email?.split("@")[0] || "User")
-                .replace("{emoji}", getTimeEmoji())}
-            </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <div className="w-px h-4 bg-border"></div>
+
+          <div className="flex items-center gap-4">
             <ThemeToggle />
-            <div className="w-px h-4 bg-border"></div>
+            <LanguageToggle />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={session?.user?.image || undefined} alt={session?.user?.name || "User"} />
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={session.user.image || undefined} alt={session.user.name || "User"} />
                     <AvatarFallback>
-                      {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0) || "U"}
+                      <User className="h-6 w-6" />
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel className="text-sm truncate">{session?.user?.name || session?.user?.email}</DropdownMenuLabel>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link href="/profile">
-                  <DropdownMenuItem className="cursor-pointer text-sm">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>{t("profile.title")}</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/logout">
-                  <DropdownMenuItem className="cursor-pointer text-sm">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("auth.signOut")}</span>
-                  </DropdownMenuItem>
-                </Link>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/api/auth/signout"
+                    className="w-full flex items-center cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    <span>Log out</span>
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
+      </nav>
 
-        {/* 统计卡片 */}
+      <div className="container mx-auto py-6 space-y-8">
+        <div className="flex flex-col items-center text-center gap-2">
+          <h1 className="text-2xl font-bold">
+            {t("app.welcome")}，{session.user.name?.split(" ")[0] || "User"}! {getTimeEmoji()}
+          </h1>
+          <p className="text-muted-foreground max-w-2xl">{t("welcome.subheadline")}</p>
+        </div>
+
         <div className="flex justify-center md:justify-center gap-8 md:gap-12 my-12 md:mb-10">
           <div className="flex flex-col items-center p-4 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow w-[140px] h-[120px]">
             <ListTodo className="h-5 w-5 md:h-6 md:w-6 text-primary mb-2" />

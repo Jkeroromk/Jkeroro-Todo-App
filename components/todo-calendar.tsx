@@ -2,20 +2,22 @@
 
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
-import { CheckCircle, Circle, Trash2 } from "lucide-react"
+import { CheckCircle, Circle, Trash2, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Task } from "./todo-app"
 import { useLanguage } from "@/contexts/language-context"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 type TodoCalendarProps = {
   tasks: Task[]
   onToggleCompletion: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onEditTask: (task: Task) => void
 }
 
-export function TodoCalendar({ tasks, onToggleCompletion, onDeleteTask }: TodoCalendarProps) {
+export function TodoCalendar({ tasks, onToggleCompletion, onDeleteTask, onEditTask }: TodoCalendarProps) {
   const { t, language } = useLanguage()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
 
@@ -75,44 +77,45 @@ export function TodoCalendar({ tasks, onToggleCompletion, onDeleteTask }: TodoCa
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-6">
-        <div className="w-full max-w-2xl mx-auto">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            className="rounded-md border w-full"
-            modifiersStyles={{
-              today: {
-                fontWeight: "bold",
-                color: "var(--primary)",
-              },
-            }}
-            lang={language}
-          />
+    <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
+      <div className="w-full">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          className="rounded-md border w-full"
+          lang={language}
+          components={{
+            DayContent: ({ date }) => {
+              const count = getTaskCount(date)
+              return (
+                <div className="relative w-full h-full flex flex-col items-center justify-center gap-0.5">
+                  <div className="text-sm">{date.getDate()}</div>
+                  {count > 0 && (
+                    <div className="flex gap-0.5 items-center">
+                      {[...Array(Math.min(count, 5))].map((_, i) => (
+                        <div key={i} className="h-1 w-1 rounded-full bg-primary" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            },
+          }}
+        />
+      </div>
 
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">
-              {t("calendar.tasksFor")} {selectedDate?.toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
-            </h4>
-            {getTaskCount(selectedDate) > 0 ? (
-              <Badge>
-                {getTaskCount(selectedDate)} {t("calendar.tasks")}
-              </Badge>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t("calendar.noTasksScheduled")}</p>
-            )}
-          </div>
-        </div>
+      <div className="w-full bg-card rounded-lg p-4">
+        <h3 className="text-lg font-medium mb-4 px-2 text-center">{formatDate(selectedDate)}</h3>
 
-        <div className="w-full max-w-2xl mx-auto">
-          <h3 className="text-lg font-medium mb-3">{formatDate(selectedDate)}</h3>
-
+        <ScrollArea className={cn(
+          "transition-all duration-200",
+          tasksForSelectedDay.length > 0 ? "h-[calc(100vh-32rem)]" : "h-16"
+        )}>
           {tasksForSelectedDay.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-2 px-2">
               {tasksForSelectedDay.map((task) => (
-                <li key={task.id} className="flex items-center gap-2 p-3 bg-card rounded-lg shadow-sm">
+                <li key={task.id} className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-sm">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -139,6 +142,16 @@ export function TodoCalendar({ tasks, onToggleCompletion, onDeleteTask }: TodoCa
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => onEditTask(task)}
+                    className="text-gray-400 hover:text-primary"
+                    aria-label="Edit task"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onDeleteTask(task.id)}
                     className="text-gray-400 hover:text-destructive"
                     aria-label="Delete task"
@@ -149,9 +162,9 @@ export function TodoCalendar({ tasks, onToggleCompletion, onDeleteTask }: TodoCa
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 py-4">{t("calendar.noTasksForDay")}</p>
+            <p className="text-gray-500 dark:text-gray-400 py-4 px-2 text-center">{t("calendar.noTasksForDay")}</p>
           )}
-        </div>
+        </ScrollArea>
       </div>
     </div>
   )

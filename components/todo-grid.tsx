@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, Circle, Trash2, Calendar } from "lucide-react"
+import { CheckCircle, Circle, Trash2, Calendar, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -11,9 +11,10 @@ type TodoGridProps = {
   tasks: Task[]
   onToggleCompletion: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onEditTask: (task: Task) => void
 }
 
-export function TodoGrid({ tasks, onToggleCompletion, onDeleteTask }: TodoGridProps) {
+export function TodoGrid({ tasks, onToggleCompletion, onDeleteTask, onEditTask }: TodoGridProps) {
   const { t } = useLanguage()
 
   // Sort tasks by creation date (newest first)
@@ -52,15 +53,27 @@ export function TodoGrid({ tasks, onToggleCompletion, onDeleteTask }: TodoGridPr
           </CardContent>
 
           <CardFooter className="flex justify-between pt-2 pb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onToggleCompletion(task.id)}
-              className={task.completed ? "text-primary" : "text-gray-400 hover:text-primary"}
-            >
-              {task.completed ? <CheckCircle className="w-5 h-5 mr-1" /> : <Circle className="w-5 h-5 mr-1" />}
-              {task.completed ? t("task.done") : t("task.complete")}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleCompletion(task.id)}
+                className={task.completed ? "text-primary" : "text-gray-400 hover:text-primary"}
+              >
+                {task.completed ? <CheckCircle className="w-5 h-5 mr-1" /> : <Circle className="w-5 h-5 mr-1" />}
+                {task.completed ? t("task.done") : t("task.complete")}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEditTask(task)}
+                className="text-gray-400 hover:text-primary"
+              >
+                <Pencil className="w-4 h-4 mr-1" />
+                {t("task.edit")}
+              </Button>
+            </div>
 
             <Button
               variant="ghost"

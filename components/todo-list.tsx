@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, Circle, Trash2, Calendar } from "lucide-react"
+import { CheckCircle, Circle, Trash2, Calendar, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Task } from "./todo-app"
@@ -10,9 +10,10 @@ type TodoListProps = {
   tasks: Task[]
   onToggleCompletion: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onEditTask: (task: Task) => void
 }
 
-export function TodoList({ tasks, onToggleCompletion, onDeleteTask }: TodoListProps) {
+export function TodoList({ tasks, onToggleCompletion, onDeleteTask, onEditTask }: TodoListProps) {
   const { t } = useLanguage()
 
   // Group tasks by completion status
@@ -76,6 +77,16 @@ export function TodoList({ tasks, onToggleCompletion, onDeleteTask }: TodoListPr
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => onEditTask(task)}
+                  className="text-gray-400 hover:text-primary"
+                  aria-label="Edit task"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => onDeleteTask(task.id)}
                   className="text-gray-400 hover:text-destructive"
                   aria-label="Delete task"
@@ -112,6 +123,16 @@ export function TodoList({ tasks, onToggleCompletion, onDeleteTask }: TodoListPr
                     </Badge>
                   )}
                 </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEditTask(task)}
+                  className="text-gray-400 hover:text-primary"
+                  aria-label="Edit task"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
 
                 <Button
                   variant="ghost"

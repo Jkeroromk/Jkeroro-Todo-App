@@ -19,6 +19,7 @@ const translations = {
     "app.list": "List",
     "app.grid": "Grid",
     "app.calendar": "Calendar",
+    "app.welcome": "Welcome back",
 
     // Task status
     "task.pending": "Pending",
@@ -28,6 +29,7 @@ const translations = {
     "task.done": "Done",
     "task.total": "Total Tasks",
     "task.completionRate": "Completion Rate",
+    "task.edit": "Edit",
 
     // Calendar
     "calendar.tasksFor": "Tasks for",
@@ -45,6 +47,10 @@ const translations = {
     "addTask.pickDate": "Pick a date",
     "addTask.cancel": "Cancel",
     "addTask.add": "Add Task",
+
+    // Edit task dialog
+    "editTask.title": "Edit Task",
+    "editTask.save": "Save Changes",
 
     // Categories
     "category.work": "Work",
@@ -143,6 +149,16 @@ const translations = {
     "profile.enterName": "Enter your name",
     "profile.enterEmail": "Enter your email",
     "profile.enterPhone": "Enter your phone number",
+
+    // Toast notifications
+    "toast.taskAdded": "Task Added",
+    "toast.taskUpdated": "Task Updated",
+    "toast.taskDeleted": "Task Deleted",
+    "toast.taskDeletedDescription": "The task has been successfully deleted",
+    "toast.taskCompleted": "Task Completed",
+    "toast.taskUncompleted": "Task Marked as Incomplete",
+    "toast.error": "Error",
+    "toast.errorDescription": "An error occurred. Please try again.",
   },
   zh: {
     // App
@@ -151,15 +167,17 @@ const translations = {
     "app.list": "列表",
     "app.grid": "网格",
     "app.calendar": "日历",
+    "app.welcome": "欢迎回来",
 
     // Task status
-    "task.pending": "待办",
+    "task.pending": "待完成",
     "task.completed": "已完成",
     "task.noTasks": "暂无任务。添加你的第一个任务！",
     "task.complete": "完成",
     "task.done": "已完成",
     "task.total": "总任务",
     "task.completionRate": "完成率",
+    "task.edit": "编辑",
 
     // Calendar
     "calendar.tasksFor": "任务日期",
@@ -177,6 +195,10 @@ const translations = {
     "addTask.pickDate": "选择日期",
     "addTask.cancel": "取消",
     "addTask.add": "添加任务",
+
+    // Edit task dialog
+    "editTask.title": "编辑任务",
+    "editTask.save": "保存更改",
 
     // Categories
     "category.work": "工作",
@@ -274,6 +296,16 @@ const translations = {
     "profile.enterName": "输入您的姓名",
     "profile.enterEmail": "输入您的邮箱",
     "profile.enterPhone": "输入您的电话号码",
+
+    // Toast notifications
+    "toast.taskAdded": "任务已添加",
+    "toast.taskUpdated": "任务已更新",
+    "toast.taskDeleted": "任务已删除",
+    "toast.taskDeletedDescription": "任务已成功删除",
+    "toast.taskCompleted": "任务已完成",
+    "toast.taskUncompleted": "任务标记为未完成",
+    "toast.error": "错误",
+    "toast.errorDescription": "发生错误，请重试。",
   },
 }
 

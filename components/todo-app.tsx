@@ -1,15 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { PlusCircle, Calendar, ListChecks, LayoutGrid } from "lucide-react"
+import { useState } from "react"
+import { PlusCircle, Calendar, ListChecks, LayoutGrid, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TodoList } from "@/components/todo-list"
 import { TodoGrid } from "@/components/todo-grid"
 import { TodoCalendar } from "@/components/todo-calendar"
-import { AddTaskDialog } from "@/components/add-task-dialog"
 import { useLanguage } from "@/contexts/language-context"
 import { useSession } from "next-auth/react"
+import { useTasks } from "@/hooks/use-tasks"
+import { TaskDialog } from "./task-dialog"
+import { useToast } from "@/components/ui/use-toast"
 
 export type Task = {
   id: string
@@ -24,43 +26,81 @@ export type Task = {
 export default function TodoApp() {
   const { t } = useLanguage()
   const { data: session } = useSession()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const { toast } = useToast()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [viewMode, setViewMode] = useState("list")
+  const { tasks, loading, addTask, toggleTaskCompletion, deleteTask, updateTask } = useTasks()
 
-  // Load tasks from localStorage on component mount
-  useEffect(() => {
-    if (session?.user?.id) {
-      const savedTasks = localStorage.getItem(`tasks_${session.user.id}`)
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks))
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task)
+    setIsDialogOpen(true)
+  }
+
+  const handleTaskSubmit = async (taskData: Omit<Task, "id" | "createdAt">) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, taskData)
+        toast({
+          title: t("toast.taskUpdated"),
+          description: taskData.title,
+        })
+        setEditingTask(null)
+      } else {
+        await addTask(taskData)
+        toast({
+          title: t("toast.taskAdded"),
+          description: taskData.title,
+        })
       }
+    } catch (error) {
+      toast({
+        title: t("toast.error"),
+        description: t("toast.errorDescription"),
+        variant: "destructive",
+      })
     }
-  }, [session])
-
-  // Save tasks to localStorage whenever tasks change
-  useEffect(() => {
-    if (session?.user?.id) {
-      localStorage.setItem(`tasks_${session.user.id}`, JSON.stringify(tasks))
-    }
-  }, [tasks, session])
-
-  const addTask = (task: Omit<Task, "id" | "createdAt">) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      userId: session?.user?.id,
-      ...task,
-    }
-    setTasks([...tasks, newTask])
   }
 
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task)))
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteTask(taskId)
+      toast({
+        title: t("toast.taskDeleted"),
+        description: t("toast.taskDeletedDescription"),
+      })
+    } catch (error) {
+      toast({
+        title: t("toast.error"),
+        description: t("toast.errorDescription"),
+        variant: "destructive",
+      })
+    }
   }
 
-  const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter((task) => task.id !== taskId))
+  const handleToggleCompletion = async (taskId: string) => {
+    try {
+      await toggleTaskCompletion(taskId)
+      const task = tasks.find(t => t.id === taskId)
+      toast({
+        title: task?.completed ? t("toast.taskUncompleted") : t("toast.taskCompleted"),
+        description: task?.title,
+      })
+    } catch (error) {
+      toast({
+        title: t("toast.error"),
+        description: t("toast.errorDescription"),
+        variant: "destructive",
+      })
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <Loader2 className="w-6 h-6 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -94,19 +134,43 @@ export default function TodoApp() {
 
       <main>
         {viewMode === "list" && (
-          <TodoList tasks={tasks} onToggleCompletion={toggleTaskCompletion} onDeleteTask={deleteTask} />
+          <TodoList 
+            tasks={tasks} 
+            onToggleCompletion={handleToggleCompletion}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditTask}
+          />
         )}
 
         {viewMode === "grid" && (
-          <TodoGrid tasks={tasks} onToggleCompletion={toggleTaskCompletion} onDeleteTask={deleteTask} />
+          <TodoGrid 
+            tasks={tasks} 
+            onToggleCompletion={handleToggleCompletion}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditTask}
+          />
         )}
 
         {viewMode === "calendar" && (
-          <TodoCalendar tasks={tasks} onToggleCompletion={toggleTaskCompletion} onDeleteTask={deleteTask} />
+          <TodoCalendar 
+            tasks={tasks} 
+            onToggleCompletion={handleToggleCompletion}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditTask}
+          />
         )}
       </main>
 
-      <AddTaskDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onAddTask={addTask} />
+      <TaskDialog 
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false)
+          setEditingTask(null)
+        }}
+        onSubmit={handleTaskSubmit}
+        mode={editingTask ? "edit" : "add"}
+        initialData={editingTask || undefined}
+      />
     </div>
   )
 }
