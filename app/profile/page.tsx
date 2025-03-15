@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useLanguage } from "@/contexts/language-context"
@@ -14,6 +14,10 @@ import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { useToast } from "@/components/ui/use-toast"
+import { AvatarUpload } from "@/components/avatar-upload"
+import { uploadImage } from "@/lib/upload"
+import { db } from "@/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
 
 export default function ProfilePage() {
   const { t } = useLanguage()
@@ -27,6 +31,38 @@ export default function ProfilePage() {
     phone: "",
     image: session?.user?.image || "",
   })
+
+  // 从 Firestore 获取用户数据
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (session?.user?.id) {
+        try {
+          const userRef = doc(db, "users", session.user.id)
+          const userDoc = await getDoc(userRef)
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data()
+            setFormData(prev => ({
+              ...prev,
+              name: userData.name || session?.user?.name || "",
+              email: userData.email || session?.user?.email || "",
+              phone: userData.phone || "",
+              image: userData.image || session?.user?.image || "",
+            }))
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error)
+          toast({
+            title: t("toast.error"),
+            description: t("profile.fetchError"),
+            variant: "destructive",
+          })
+        }
+      }
+    }
+
+    fetchUserData()
+  }, [session?.user?.id])
 
   // Handle loading state
   if (status === "loading") {
@@ -57,59 +93,97 @@ export default function ProfilePage() {
         body: JSON.stringify(formData),
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to update profile")
-      }
+      const data = await response.json()
 
-      const updatedUser = await response.json()
+      if (!response.ok) {
+        throw new Error(data.details || "Failed to update profile")
+      }
 
       // Update the session with new user data
       await update({
         ...session,
-        user: updatedUser,
+        user: data,
       })
 
       // Show success message
       toast({
-        title: t("profile.success"),
-        duration: 3000,
+        title: t("profile.updated"),
+        description: t("profile.updatedDescription"),
       })
     } catch (error) {
+      console.error("Profile update error:", error)
       // Show error message
       toast({
-        title: t("profile.error"),
+        title: t("toast.error"),
+        description: error instanceof Error ? error.message : t("toast.errorDescription"),
         variant: "destructive",
-        duration: 3000,
       })
-      console.error("Failed to update profile:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          image: reader.result as string,
-        }))
+  const handleImageUpload = async (file: File) => {
+    if (!session?.user?.id) {
+      toast({
+        title: t("toast.error"),
+        description: t("auth.notAuthenticated"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const imageUrl = await uploadImage(file, session.user.id)
+      
+      // 更新用户资料
+      const response = await fetch("/api/user", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          image: imageUrl,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.details || "Failed to update profile")
       }
-      reader.readAsDataURL(file)
+
+      // 更新 session
+      await update({
+        ...session,
+        user: data,
+      })
+
+      // 更新表单数据
+      setFormData(prev => ({
+        ...prev,
+        image: imageUrl,
+      }))
+
+      toast({
+        title: t("profile.uploadSuccess"),
+      })
+    } catch (error) {
+      console.error("Failed to upload image:", error)
+      toast({
+        title: t("profile.uploadError"),
+        description: error instanceof Error ? error.message : t("toast.errorDescription"),
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const removeAvatar = () => {
-    setFormData((prev) => ({
-      ...prev,
-      image: "",
-    }))
-  }
-
   return (
-    <div className="min-h-screen bg-white dark:bg-black p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="container max-w-lg mx-auto">
         <div className="flex justify-between items-center mb-8">
           <Link href="/app">
@@ -131,40 +205,12 @@ export default function ProfilePage() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6">
-              <div className="flex flex-col items-center gap-4">
-                <Label htmlFor="avatar" className="cursor-pointer text-center">
-                  <Avatar className="h-24 w-24 mx-auto">
-                    <AvatarImage src={formData.image || undefined} />
-                    <AvatarFallback>
-                      {formData.name?.charAt(0) || formData.email?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="mt-2 flex gap-2 justify-center">
-                    <Button type="button" variant="outline" size="sm" className="gap-1">
-                      <Upload className="h-4 w-4" />
-                      <span>{t("profile.uploadAvatar")}</span>
-                      <input
-                        id="avatar"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleAvatarUpload}
-                      />
-                    </Button>
-                    {formData.image && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={removeAvatar}
-                        className="gap-1 text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                        <span>{t("profile.removeAvatar")}</span>
-                      </Button>
-                    )}
-                  </div>
-                </Label>
+              <div className="flex justify-center">
+                <AvatarUpload
+                  currentImage={session?.user?.image}
+                  userName={session?.user?.name}
+                  onImageUpload={handleImageUpload}
+                />
               </div>
 
               <div className="space-y-2">
@@ -183,7 +229,7 @@ export default function ProfilePage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  disabled
                   placeholder={t("profile.enterEmail")}
                 />
               </div>
@@ -200,9 +246,12 @@ export default function ProfilePage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading} className="w-full gap-2">
-                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t("profile.save")}
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  t("profile.save")
+                )}
               </Button>
             </CardFooter>
           </form>

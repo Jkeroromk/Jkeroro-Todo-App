@@ -29,7 +29,7 @@ export default function TodoApp() {
   const { toast } = useToast()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [viewMode, setViewMode] = useState("list")
+  const [viewMode, setViewMode] = useState("calendar")
   const { tasks, loading, addTask, toggleTaskCompletion, deleteTask, updateTask } = useTasks()
 
   const handleEditTask = (task: Task) => {
@@ -114,27 +114,27 @@ export default function TodoApp() {
           </Button>
         </div>
 
-        <Tabs defaultValue="list" value={viewMode} onValueChange={setViewMode} className="w-full">
+        <Tabs defaultValue="calendar" value={viewMode} onValueChange={setViewMode} className="w-full">
           <TabsList className="grid grid-cols-3 w-full max-w-sm mx-auto bg-secondary">
-            <TabsTrigger value="list" className="flex items-center gap-1 data-[state=active]:bg-background">
-              <ListChecks className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("app.list")}</span>
+            <TabsTrigger value="calendar" className="flex items-center gap-1 data-[state=active]:bg-background">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">{t("app.calendar")}</span>
             </TabsTrigger>
             <TabsTrigger value="grid" className="flex items-center gap-1 data-[state=active]:bg-background">
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">{t("app.grid")}</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-1 data-[state=active]:bg-background">
-              <Calendar className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("app.calendar")}</span>
+            <TabsTrigger value="list" className="flex items-center gap-1 data-[state=active]:bg-background">
+              <ListChecks className="w-4 h-4" />
+              <span className="hidden sm:inline">{t("app.list")}</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </header>
 
       <main>
-        {viewMode === "list" && (
-          <TodoList 
+        {viewMode === "calendar" && (
+          <TodoCalendar 
             tasks={tasks} 
             onToggleCompletion={handleToggleCompletion}
             onDeleteTask={handleDeleteTask}
@@ -151,8 +151,8 @@ export default function TodoApp() {
           />
         )}
 
-        {viewMode === "calendar" && (
-          <TodoCalendar 
+        {viewMode === "list" && (
+          <TodoList 
             tasks={tasks} 
             onToggleCompletion={handleToggleCompletion}
             onDeleteTask={handleDeleteTask}

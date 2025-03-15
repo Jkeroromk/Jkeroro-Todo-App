@@ -104,12 +104,18 @@ export default function AppPage() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link href="/profile" className="w-full flex items-center cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    <span>{t("profile.title")}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link
                     href="/api/auth/signout"
                     className="w-full flex items-center cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    <span>Log out</span>
+                    <span>{t("auth.signOut")}</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

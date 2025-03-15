@@ -136,7 +136,7 @@ const translations = {
     "auth.backToApp": "Back to App",
 
     // Profile
-    "profile.title": "Profile Settings",
+    "profile.title": "Edit Profile",
     "profile.avatar": "Avatar",
     "profile.name": "Name",
     "profile.email": "Email",
@@ -149,6 +149,14 @@ const translations = {
     "profile.enterName": "Enter your name",
     "profile.enterEmail": "Enter your email",
     "profile.enterPhone": "Enter your phone number",
+    "profile.updated": "Profile Updated",
+    "profile.updatedDescription": "Your profile has been successfully updated",
+    "profile.dragAndDrop": "Drag and drop an image here",
+    "profile.dropHere": "Drop the image here",
+    "profile.or": "or",
+    "profile.selectFile": "Select from computer",
+    "profile.uploadSuccess": "Avatar updated successfully",
+    "profile.uploadError": "Failed to upload avatar",
 
     // Toast notifications
     "toast.taskAdded": "Task Added",
@@ -283,7 +291,7 @@ const translations = {
     "auth.backToApp": "返回应用",
 
     // Profile
-    "profile.title": "个人资料设置",
+    "profile.title": "编辑个人资料",
     "profile.avatar": "头像",
     "profile.name": "姓名",
     "profile.email": "邮箱",
@@ -293,9 +301,17 @@ const translations = {
     "profile.error": "个人资料更新失败",
     "profile.uploadAvatar": "上传新头像",
     "profile.removeAvatar": "移除头像",
-    "profile.enterName": "输入您的姓名",
-    "profile.enterEmail": "输入您的邮箱",
+    "profile.enterName": "请输入您的姓名",
+    "profile.enterEmail": "请输入您的邮箱",
     "profile.enterPhone": "输入您的电话号码",
+    "profile.updated": "资料已更新",
+    "profile.updatedDescription": "您的个人资料已成功更新",
+    "profile.dragAndDrop": "拖拽图片到这里",
+    "profile.dropHere": "放开以上传图片",
+    "profile.or": "或",
+    "profile.selectFile": "从电脑选择",
+    "profile.uploadSuccess": "头像更新成功",
+    "profile.uploadError": "头像上传失败",
 
     // Toast notifications
     "toast.taskAdded": "任务已添加",
