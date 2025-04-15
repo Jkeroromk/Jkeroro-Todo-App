@@ -30,6 +30,12 @@ const handler = NextAuth({
       }
       return session
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id
+      }
+      return token
+    }
   },
   session: {
     strategy: "jwt",

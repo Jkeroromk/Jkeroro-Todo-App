@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, addDoc, updateDoc, deleteDoc, doc, onSnapshot, deleteField } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import type { Task } from '@/components/todo-app';
 import { useSession } from 'next-auth/react';
 
@@ -10,38 +10,43 @@ export function useTasks() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    if (!session?.user?.id) {
-      setTasks([]);
-      setLoading(false);
-      return;
-    }
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        setTasks([]);
+        setLoading(false);
+        return;
+      }
 
-    const q = query(
-      collection(db, 'tasks'),
-      where('userId', '==', session.user.id),
-      orderBy('createdAt', 'desc')
-    );
+      const q = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Task[];
-      setTasks(tasksData);
-      setLoading(false);
+      const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        const tasksData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Task[];
+        setTasks(tasksData);
+        setLoading(false);
+      });
+
+      return () => unsubscribeSnapshot();
     });
 
-    return () => unsubscribe();
-  }, [session]);
+    return () => unsubscribeAuth();
+  }, []);
 
   const addTask = async (task: Omit<Task, 'id' | 'createdAt'>) => {
-    if (!session?.user?.id) return;
+    const user = auth.currentUser;
+    if (!user) return;
 
     try {
       const newTask = {
         ...task,
         createdAt: new Date().toISOString(),
-        userId: session.user.id
+        userId: user.uid
       };
 
       if (newTask.dueDate === undefined) {
@@ -80,7 +85,8 @@ export function useTasks() {
   };
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'userId'>>) => {
-    if (!session?.user?.id) return;
+    const user = auth.currentUser;
+    if (!user) return;
     
     try {
       const taskRef = doc(db, 'tasks', taskId);
